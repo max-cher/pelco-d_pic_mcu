@@ -59,23 +59,7 @@ interrupt isr(void) {
 //
 }
 
-void move_left(void);
-void move_right(void);
-void move_stop(void);
-void send_msg(void);
-void Init_UART(void);
-void delay(u8 dly_val);
-void lcd_init(void);
-void byte_send(u8 bs);
-u8 busy_check(void);
-void cmd_send_noACK(u8 bs);
-void cmd_send(u8 bs);
-void print(void);
-void calc_value16(u16 value);
-u8 convert_char(u8 char0);
-void delay_10u(void);
-void delay_50u(void);
-u16 get_angle(void);
+
 
 
 
@@ -94,7 +78,7 @@ void main(void) {
 	TRISE = 0x03;
 	OPTION_REG = 0b11000111;
 	
-	//lcd_init();
+	lcd_init();
 	
 	PIR1 = 0;
 	PIR2 = 0;
@@ -127,24 +111,19 @@ void main(void) {
 	////T2CON.2 = 1; // timer on
     
     
-	
-	//PORTB = 0b00000000;
     
     Init_UART();
 	
-	u8 dd = 8;	// delay value
+	uint8_t dd = 8;	// delay value
 	
 	update_lcd_flag = 1;
     
-    u8 dly_tmp;
-    
-    //send_pulses(13);
+    uint8_t dly_tmp;
     
     
-    
-    c00 = 'p';
-    c01 = '0';
-    c02 = ':';
+    c00 = 'X';
+    c01 = ':';
+    c02 = ' ';
     c03 = '0';
     c04 = '0';
     c05 = '0';
@@ -159,14 +138,14 @@ void main(void) {
     c0e = ' ';
     c0f = ' ';
     
-    c10 = ' ';
-    c11 = ' ';
+    c10 = 'Y';
+    c11 = ':';
     c12 = ' ';
-    c13 = ' ';
-    c14 = ' ';
-    c15 = ' ';
-    c16 = ' ';
-    c17 = ' ';
+    c13 = '0';
+    c14 = '0';
+    c15 = '0';
+    c16 = '0';
+    c17 = '0';
     c18 = ' ';
     c19 = ' ';
     c1a = ' ';
@@ -175,153 +154,46 @@ void main(void) {
     c1d = ' ';
     c1e = ' ';
     c1f = ' ';
-    //print();
-    //delay_50u();
-    u16 main_counter = 0;
-    
-    //PORTB = 0xaa;
-    
-    //move_stop();
-    //TXREG = 'a';
+    print();
+    uint16_t main_counter = 0;
+    uint16_t angle = 0;
     PORTB.2 = 1;
     
 	while(1) {
         
-        //PORTB = PORTA;
-        
-        //if(PORTB.4 == 1 && PORTB.5 == 0) {
-        if(PORTB.4 && !PORTB.5) {
-            PORTB = 0x0a;
-            //PORTB = 0x0f;
+        if(PORTB.4 && !PORTB.5) {       // right
             move_right();
         }
-        else if(!PORTB.4 && PORTB.5) {
-        //if(PORTB.5) {
-            PORTB = 0x05;
-        //    //PORTB = 0x00;
+        else if(!PORTB.4 && PORTB.5) {  // left
             move_left();
         }
-        else if(!PORTB.4 && !PORTB.5) {
-            PORTB = 0x00;
+        if(PORTB.6 && !PORTB.7) {       // up
+            move_up();
+        }
+        else if(!PORTB.6 && PORTB.7) {  // down
+            move_down();
+        }
+        else if(!PORTB.4 && !PORTB.5 && !PORTB.6 && !PORTB.7) { // stop
             move_stop();
         }
-        //if(PORTB.4 == 0 && PORTB.5 == 0) {
-        //if(PORTB.6) {
-        //    PORTB.2 = 0;
-        //    PORTB.3 = 0;
-        //    move_stop();
-        //}
         
-        //delay(0x88);
-        //*/
-        
-        /*
-        TRISD = 0b00000011;//0b00000011;
-        while(!PORTD.0) {
-            PORTB.1 = 0;
-            dly_tmp = 5;
-            PORTB.3 = 1;
-            
-            while(dly_tmp)
-                dly_tmp--;
-            
-            PORTB.3 = 0;
-            
-            dly_tmp = 0x30;//0x2a;
-            while(dly_tmp)
-                dly_tmp--;
-        }
-        
-        while(!PORTD.1) {
-            PORTB.1 = 1;
-            dly_tmp = 5;
-            PORTB.3 = 1;
-            
-            while(dly_tmp)
-                dly_tmp--;
-            
-            PORTB.3 = 0;
-            
-            dly_tmp = 0x30;//0x2a;
-            while(dly_tmp)
-                dly_tmp--;
-        }
-        TRISD = 0b00000000;//0b00000011;
-        //*/
-        /*
-        //send_pulses();
-        //calc_value16(get_angle());
-        calc_value16(main_counter);
+        angle = get_angle_x();
+        calc_value16(angle);
         c03 = c0;
         c04 = c1;
         c05 = c2;
         c06 = c3;
         c07 = c4;
-        c17 = 'A';
-        print();
-        //*/
         
-		/*
-		if(update_lcd_flag) {
-			
-			calc_value16(666);
-			c03 = c0;
-			c04 = c1;
-			c05 = c2;
-			c06 = c3;
-			c07 = c4;
-			
-			calc_value16(777);
-			c13 = c0;
-			c14 = c1;
-			c15 = c2;
-			c16 = c3;
-			c17 = c4;
-			
-            
-			if(PORTB.0 && !PORTB.1) {
-				if(volt00 > volt01) {
-					volt0 = volt00 - volt01;
-					c0b = '+';
-				}
-				else {
-					volt0 = volt01 - volt00;
-					c0b = '-';
-				}
-			}
-			
-			if(!PORTB.0 && PORTB.1) {
-				if(volt00 > volt01) {
-					volt0 = volt00 - volt01;
-					c0b = '-';
-				}
-				else {
-					volt0 = volt01 - volt00;
-					c0b = '+';
-				}
-			}
-            
-			
-			calc_value16(888);
-		//	c0b = c0;
-			c0c = c1;
-			c0d = c2;
-			c0e = c3;
-			c0f = c4;
-			
-			calc_value16(999);
-			c1b = c0;
-			c1c = c1;
-			c1d = c2;
-			c1e = c3;
-			c1f = c4;
-			
-			//PORTB.7 = 1;
-			print();
-			//PORTB.7 = 0;
-		}
-		delay_50u();
-        //*/
+        angle = get_angle_y();
+        calc_value16(angle);
+        c13 = c0;
+        c14 = c1;
+        c15 = c2;
+        c16 = c3;
+        c17 = c4;
+        
+        print();
 	}
 }
 
@@ -332,7 +204,7 @@ void move_left(void) {
     msg[3] = 0x04;
     msg[4] = 0x10;
     msg[5] = 0x00;
-    msg[6] = 0x15;
+    msg[6] = crc();
     send_msg();
 }
 
@@ -343,7 +215,29 @@ void move_right(void) {
     msg[3] = 0x02;
     msg[4] = 0x10;
     msg[5] = 0x00;
-    msg[6] = 0x13;
+    msg[6] = crc();
+    send_msg();
+}
+
+void move_up(void) {
+    msg[0] = 0xff;
+    msg[1] = 0x01;
+    msg[2] = 0x00;
+    msg[3] = 0x08;
+    msg[4] = 0x00;
+    msg[5] = 0x10;
+    msg[6] = crc();
+    send_msg();
+}
+
+void move_down(void) {
+    msg[0] = 0xff;
+    msg[1] = 0x01;
+    msg[2] = 0x00;
+    msg[3] = 0x10;
+    msg[4] = 0x00;
+    msg[5] = 0x10;
+    msg[6] = crc();
     send_msg();
 }
 
@@ -354,10 +248,19 @@ void move_stop(void) {
     msg[3] = 0x00;
     msg[4] = 0x00;
     msg[5] = 0x00;
-    msg[6] = 0x01;
+    msg[6] = crc();
     send_msg();
 }
 
+
+uint8_t crc(void) {
+    uint8_t summ = 0;
+    uint8_t i;
+    for(i = 1; i < 6; i++) {
+        summ += msg[i];
+    }
+    return summ;
+}
 
 
 void send_msg(void) {
@@ -369,7 +272,6 @@ void send_msg(void) {
     for(i = 0; i < 7; i++) {
         
         TXREG = msg[i];
-        //TXEN = 1;
         while(TXIF == 0) continue;
         TXIF = 0;
     }
@@ -378,11 +280,9 @@ void send_msg(void) {
 
 
 void Init_UART(void) {
-    SPBRG = 31;//129;//31;
-    
+    SPBRG = 31;
     TXSTA = 0;
     //TXEN = 1;
-    
     //PORTB.0 = 1;
     
     RCSTA = 0;
@@ -390,28 +290,37 @@ void Init_UART(void) {
     
     RCIE = 1;
     //TXIE = 1;
-    
     //TXREG = 'X';
     TXEN = 1;
-    
 }
-
 
 #pragma codepage 0
 
-
-u16 get_angle(void) {
-    u8 counter;
-    u16 angle = 0;
+uint16_t get_angle_x(void) {
+    uint8_t counter;
+    uint16_t angle = 0;
     
-    //PORTB.4 = 0;
-    for(counter = 0; counter < 14; counter++) {
-        //PORTB.4 = 1;
-        RLF(angle, 1);
-        angle.0 = PORTB.5;
-        //PORTB.4 = 0;
-    }
-    //PORTB.4 = 1;
+    //msg[0] = 0xff;
+    //msg[1] = 0x01;
+    //msg[2] = 0x00;
+    //msg[3] = 0x53;
+    //msg[4] = 0x00;
+    //msg[5] = 0x00;
+    //msg[6] = crc();
+    //send_msg();
+    
+    //uint8_t i = 0;
+    
+    //RCIF = 0;
+    //c03 = RCREG;
+    
+    return angle;
+}
+
+uint16_t get_angle_y(void) {
+    uint8_t counter;
+    uint16_t angle = 0;
+    
     return angle;
 }
 
@@ -487,7 +396,7 @@ void print(void) {
 }
 
 
-void byte_send(u8 bs) {
+void byte_send(uint8_t bs) {
 	GIE = 0;
 	lcd_data = bs;
 	pc_tmp = PORTC;
@@ -507,7 +416,7 @@ void byte_send(u8 bs) {
 }
 
 
-void cmd_send(u8 bs) {
+void cmd_send(uint8_t bs) {
 	GIE = 0;
 	lcd_data = bs;
 	pc_tmp = PORTC;
@@ -527,7 +436,7 @@ void cmd_send(u8 bs) {
 }
 
 
-void cmd_send_noACK(u8 bs) {
+void cmd_send_noACK(uint8_t bs) {
 	GIE = 0;
 	lcd_data = bs;
 	pc_tmp = PORTC;
@@ -545,7 +454,7 @@ void cmd_send_noACK(u8 bs) {
 }
 
 
-void calc_value16(u16 value) {
+void calc_value16(uint16_t value) {
 	c0 = 0;
 	c1 = 0;
 	c2 = 0;
@@ -598,7 +507,7 @@ void calc_value16(u16 value) {
 }
 
 
-u8 convert_char(u8 char0) {
+uint8_t convert_char(uint8_t char0) {
 	if(char0 == 0)
 		return '0';
 	if(char0 == 1)
@@ -620,20 +529,16 @@ u8 convert_char(u8 char0) {
 	if(char0 == 9)
 		return '9';
 	return 0;
-	
 }
 
 
-void delay(u8 dly_val) {
-//	u8 dly_val;
-//	u8 wait_val;
-
+void delay(uint8_t dly_val) {
 	while(dly_val > 0) {
 		dly_val--;
-		u8 dly_val0 = 0xff;
+		uint8_t dly_val0 = 0xff;
 		while(dly_val0 > 0) {
 			dly_val0--;
-			u8 dly_val1 = 0xff;
+			uint8_t dly_val1 = 0xff;
 			while(dly_val1 > 0) {
 				dly_val1--;
 				nop();
@@ -645,8 +550,8 @@ void delay(u8 dly_val) {
 }
 
 
-u8 busy_check(void) {
-	u8 ack=0;
+uint8_t busy_check(void) {
+	uint8_t ack=0;
 	pc_tmp = PORTC;
 	pc_tmp &= ~(rs | rw | e);
 	PORTC = pc_tmp;
@@ -700,22 +605,18 @@ void lcd_init(void) {
 	TMR0 = 0;
 	T0IF = 0;
 	while (!T0IF) continue;
-//
 	cmd_send(0x38);		// 8 bit, 2 strings
 	cmd_send(0b00001000);		// lcd off
 	cmd_send(0x01);		// reset lcd
 	cmd_send(0x06);		// shift right
 	cmd_send(0x0c);		// lcd on
-//	cmd_send(0x40);
 }
 
 
 void delay_10u(void) {
-    u8 tmp_delay = 0x9;
+    uint8_t tmp_delay = 0x9;
 	while(tmp_delay != 0) {
 		tmp_delay--;
-        //nop();
-
     }
 }
 
@@ -795,10 +696,5 @@ void delay_50u(void) {
 	nop();
 	nop();
 	nop();
-	
-//	u8 tmp_delay=3;
-//	while(tmp_delay != 0)
-//	{
-//		tmp_delay--;
-//	}
 }
+
